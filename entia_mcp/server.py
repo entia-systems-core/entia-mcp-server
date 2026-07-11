@@ -86,8 +86,10 @@ def _get(path: str, params: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         return r.json()
     except httpx.HTTPStatusError as exc:
         return {"error": str(exc), "status_code": exc.response.status_code}
-    except Exception as exc:  # noqa: BLE001
-        return {"error": str(exc)}
+    except httpx.HTTPError as exc:
+        return {"error": f"Network error: {exc}"}
+    except ValueError as exc:
+        return {"error": f"Non-JSON response from ENTIA: {exc}"}
 
 
 def _mcp_call(tool: str, arguments: dict[str, Any]) -> dict[str, Any]:

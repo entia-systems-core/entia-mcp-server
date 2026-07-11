@@ -34,9 +34,11 @@ class EntiaClient:
         self.timeout = timeout or settings.entia_timeout_seconds
 
     def _headers(self) -> dict[str, str]:
+        # ENTIA authenticates via the single canonical X-ENTIA-Key header (see README).
+        # Sending the key twice (Authorization: Bearer + X-ENTIA-Key) needlessly widens
+        # its exposure surface without any auth benefit.
         headers = {"Accept": "application/json"}
         if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
             headers["X-ENTIA-Key"] = self.api_key
         return headers
 
@@ -49,7 +51,11 @@ class EntiaClient:
             raise EntiaAPIError(f"Network error: {exc}") from exc
 
         if response.status_code >= 400:
-            raise EntiaAPIError(f"ENTIA API error {response.status_code}: {response.text}")
+            # Truncate the upstream body so an unexpected error response can't spill
+            # large or sensitive payloads into logs/exceptions.
+            raise EntiaAPIError(
+                f"ENTIA API error {response.status_code}: {response.text[:300]}"
+            )
 
         try:
             return response.json()
@@ -68,6 +74,8 @@ class EntiaClient:
 
         Returns: {"status": "ok", "count": N, "entities": [...]}
         """
+        # Clamp to the API's supported window so out-of-range values can't be forwarded.
+        limit = max(1, min(int(limit), 50))
         params: dict[str, Any] = {"q": query, "country": country, "limit": limit}
         if sector:
             params["sector"] = sector
@@ -131,9 +139,11 @@ class AsyncEntiaClient:
         self.timeout = timeout or settings.entia_timeout_seconds
 
     def _headers(self) -> dict[str, str]:
+        # ENTIA authenticates via the single canonical X-ENTIA-Key header (see README).
+        # Sending the key twice (Authorization: Bearer + X-ENTIA-Key) needlessly widens
+        # its exposure surface without any auth benefit.
         headers = {"Accept": "application/json"}
         if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
             headers["X-ENTIA-Key"] = self.api_key
         return headers
 
@@ -146,11 +156,16 @@ class AsyncEntiaClient:
             raise EntiaAPIError(f"Network error: {exc}") from exc
 
         if response.status_code >= 400:
-            raise EntiaAPIError(f"ENTIA API error {response.status_code}: {response.text}")
+            # Truncate the upstream body so an unexpected error response can't spill
+            # large or sensitive payloads into logs/exceptions.
+            raise EntiaAPIError(
+                f"ENTIA API error {response.status_code}: {response.text[:300]}"
+            )
 
         return response.json()
 
     async def search(self, query: str, country: str = "ES", limit: int = 10, **kwargs) -> dict:
+        limit = max(1, min(int(limit), 50))
         params = {"q": query, "country": country, "limit": limit, **kwargs}
         return await self._request("GET", "/v1/search", params)
 
