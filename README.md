@@ -6,7 +6,7 @@ ENTIA provides verified entity data across 34 countries — accessible via [Mode
 
 | Metric | Value |
 |---|---|
-| Verified entities | 5,220,360 |
+| Verified entities | 5,557,415 |
 | Countries | 34 |
 | BORME mercantile acts | 40.3M |
 | Healthcare professionals | 570K+ |
@@ -89,12 +89,12 @@ A Python client lives in this repo under `entia_mcp/` (wraps a subset of tools a
 
 ## Pricing
 
-Free tier: **100 requests/day** per IP, no signup. Authoritative pricing is published live at
+Free tier: **100 requests/month** per IP, no signup. Authoritative pricing is published live at
 [entia.systems/.well-known/ai-pricing.json](https://entia.systems/.well-known/ai-pricing.json).
 
 | Tier | Price | Requests | Overage |
 |---|---|---|---|
-| TRACE | Free | 100/day | Hard block |
+| TRACE | Free | 100/month | Hard block |
 | SIGNAL | EUR 29/month | 500/month | Hard block |
 | BUILD | EUR 99/month | 2,500/month | Hard block |
 | INTEGRATE | EUR 399/month | 10,000/month | EUR 0.15/req |
